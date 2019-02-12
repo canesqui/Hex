@@ -7,6 +7,16 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        
+        <StackPanel>
+            <StackPanel HorizontalAlignment="Left" Margin="5">
+                <Button Margin="2">Create Game</Button>
+                <Button Margin="2">Move</Button>
+                <Button Margin="2">Game Result</Button>
+            </StackPanel>
+            <StackPanel HorizontalAlignment="Left">
+                <TextBlock>Result</TextBlock>
+                <TextBlock Text="{Binding = Result}">test</TextBlock>
+            </StackPanel>
+        </StackPanel>
     </Grid>
 </Window>
