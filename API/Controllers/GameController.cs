@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Common;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
@@ -19,13 +20,15 @@ namespace API.Controllers
         public async Task<IActionResult> Get()
         {
             Random rand = new Random();
-            var gameResult = rand.Next(1);
+            var gameResult = rand.Next(2);
             switch (gameResult)
             {
                 case 0:
                     return Content(Utils.Utils.Win, Utils.Utils.ApplicationJson);
                 case 1:
                     return Content(Utils.Utils.Lose, Utils.Utils.ApplicationJson);
+                case 2:
+                    return Content(Utils.Utils.GameInProgress, Utils.Utils.ApplicationJson);
                 default:
                     return StatusCode(501, "Unexpected error");
             }            
@@ -38,7 +41,8 @@ namespace API.Controllers
         [ProducesResponseType(401)] //Authorization required (future use)
         public async Task<IActionResult> Post()
         {
-            return CreatedAtAction(Guid.NewGuid().ToString(), null);
+            //await HttpResponseWritingExtensions.WriteAsync(this.Response, Guid.NewGuid().ToString());            
+            return CreatedAtAction(nameof(Get), Guid.NewGuid().ToString());
         }
 
         // POST api/game
