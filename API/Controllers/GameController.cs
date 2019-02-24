@@ -13,7 +13,8 @@ namespace API.Controllers
     [Route("api/[controller]")]
     [ApiController]
     public class GameController : ControllerBase
-    {        
+    {
+        Server.Server server = new Server.Server();
         // GET api/game
         [HttpGet]
         public async Task<IActionResult> Get()
@@ -55,6 +56,8 @@ namespace API.Controllers
         {
             Random rand = new Random();
             var responseAction = rand.Next(3);
+
+            server.Move(move);
 
             switch (responseAction)
             {
