@@ -19,17 +19,7 @@ namespace API.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {            
-            Random rand = new Random();
-            var gameResult = rand.Next(1);
-            switch (gameResult)
-            {
-                case 0:
-                    return Content(Utils.Utils.Win, Utils.Utils.ApplicationJson);
-                case 1:
-                    return Content(Utils.Utils.Lose, Utils.Utils.ApplicationJson);
-                default:
-                    return StatusCode(501, "Unexpected error");
-            }            
+            return server.DidHumanWin() == true ? Content(Utils.Utils.Win, Utils.Utils.ApplicationJson) : Content(Utils.Utils.Lose, Utils.Utils.ApplicationJson);
         }
 
         // POST api/game
