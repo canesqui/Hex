@@ -18,8 +18,19 @@ namespace API.Controllers
         // GET api/game
         [HttpGet]
         public async Task<IActionResult> Get()
-        {            
-            return server.DidHumanWin() == true ? Content(Utils.Utils.Win, Utils.Utils.ApplicationJson) : Content(Utils.Utils.Lose, Utils.Utils.ApplicationJson);
+        {
+            var gameStatus = server.GameStatus();
+            switch (gameStatus)
+            {
+                case GameResult.Win:
+                    return Content(Utils.Utils.Win, Utils.Utils.ApplicationJson);                    
+                case GameResult.Lose:
+                    return Content(Utils.Utils.Lose, Utils.Utils.ApplicationJson);                    
+                case GameResult.InProgress:
+                    return Content(Utils.Utils.InProgress, Utils.Utils.ApplicationJson);                    
+                default:
+                    return Content(Utils.Utils.Unexpected, Utils.Utils.ApplicationJson);
+            }            
         }
 
         // POST api/game
@@ -30,7 +41,7 @@ namespace API.Controllers
         public async Task<IActionResult> Post()
         {
             server.CreateBoard(Common.GameType.PlayerVsAI);
-            return CreatedAtAction(Guid.NewGuid().ToString(), null);
+            return CreatedAtAction(nameof(Get), Guid.NewGuid().ToString());
         }
 
         // POST api/game
