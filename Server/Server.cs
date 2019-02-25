@@ -75,9 +75,17 @@ namespace Server
             UpdateBoard();
         }
 
-        public bool DidHumanWin()
+        public GameResult GameStatus()
         {
-            return gameLogic.Winner == 1;
+            if(gameLogic.Winner == 1)
+            {
+                return GameResult.Win;
+            }
+            else if(gameLogic.Winner == 2)
+            {
+                return GameResult.Lose;
+            }
+            return GameResult.InProgress;
         }
 
         public Player CurrentPlayersTurn()

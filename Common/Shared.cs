@@ -9,7 +9,7 @@ namespace Common
     }
 
     public enum MoveResponse { Sucess, IllegalMove, NotYourTurn, GameOver }
-    public enum GameResult { Win, Lose }
+    public enum GameResult { Win, Lose, InProgress }
     public enum GameType
     {
         PlayerVsAI,
