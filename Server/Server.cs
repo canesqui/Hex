@@ -75,6 +75,11 @@ namespace Server
             UpdateBoard();
         }
 
+        public bool DidHumanWin()
+        {
+            return gameLogic.Winner == 1;
+        }
+
         public Player CurrentPlayersTurn()
         {
             if(gameLogic.IsPlayer1sTurn())
@@ -85,7 +90,6 @@ namespace Server
             {
                 return player2;
             }
-
         }
     }
 }
