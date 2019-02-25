@@ -50,15 +50,12 @@ namespace API.Controllers
         //409 if it is not the player's turn. 
         //return StatusCode(403, "Illegal Move");            
         [HttpPut]
-        [ProducesResponseType(200, Type = typeof(Move))]
+        [ProducesResponseType(200, Type = typeof(MoveResult))]
         [ProducesResponseType(403)] //Illegal move
         [ProducesResponseType(409)] //Not the player's turn
         [ProducesResponseType(501)] //Unexpected error                                    
         public async Task<IActionResult> Move(Move move)
-        {
-            Random rand = new Random();
-            var responseAction = rand.Next(3);
-
+        {            
             var moveResult = server.Move(move);
 
             switch (moveResult.PlayerMoveResult)
