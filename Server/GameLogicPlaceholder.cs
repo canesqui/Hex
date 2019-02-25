@@ -8,6 +8,11 @@ namespace Server
     {
         Random rng = new Random();
         bool isPlayer1sTurn = true;
+        int winner = 0;
+        public int Winner
+        {
+            get { return winner; }
+        }
 
         public Common.MoveResponse Move(Common.Move move)
         {
@@ -28,6 +33,13 @@ namespace Server
             }
             return Common.MoveResponse.GameOver;
         }
+
+        public bool IsGameOver()
+        {
+            return false;
+        }
+
+
 
         public void SwitchTurns()
         {

@@ -7,21 +7,40 @@ namespace Server
         private Player player1;
         private Player player2;
         private GameLogicPlaceholder gameLogic;
+        private GameType gameType;
 
-        public void CreateAI()
+        private void CreateAI()
         {
             if (player1 == null) { player1 = new AI(); }
             else if (player2 == null) { player2 = new AI(); }
         }
 
-        public void CreateHuman()
+        private void CreateHuman()
         {
             if (player1 == null) { player1 = new Human(); }
             else if (player2 == null) { player2 = new Human(); }
         }
 
-        public void CreateBoard()
+        public void CreateBoard(GameType gameType)
         {
+            this.gameType = gameType;
+
+            if(gameType == GameType.PlayerVsAI)
+            {
+                player1 = new Human();
+                player2 = new AI();
+            }
+            else if(gameType == GameType.PlayerVsPlayer)
+            {
+                player1 = new Human();
+                player2 = new Human();
+            }
+            else
+            {
+                player1 = new AI();
+                player2 = new AI();
+            }
+
             gameLogic = new GameLogicPlaceholder();
             UpdateBoard();
         }
@@ -33,15 +52,20 @@ namespace Server
 
         public Common.MoveResult Move(Common.Move move)
         {
-            var m = new Common.MoveResult();
-            m.PlayerMoveResult = gameLogic.Move(move);
-
-            if (m.PlayerMoveResult == Common.MoveResponse.Sucess)
+            var response = new Common.MoveResult();
+            response.PlayerMoveResult = gameLogic.Move(move);
+            if (response.PlayerMoveResult == Common.MoveResponse.Sucess)
             {
-                m.OpponentMove = ((AI)player2).MakeMove(gameLogic);
+                response.OpponentMove = ((AI)player2).MakeMove(gameLogic);
             }
 
-            return m;
+            if(gameLogic.IsGameOver())
+            {
+                response.PlayerMoveResult = Common.MoveResponse.GameOver;
+                return response;
+            }
+
+            return response;
         }
 
         public void NewBoardState(GameLogicPlaceholder gameLogic)
