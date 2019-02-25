@@ -12,19 +12,19 @@ namespace Hex.ViewModel
     {
         #region Fields
         
-        private ResponseModel response;
-        private ICommand getResponseCommand;        
+        //private ResponseModel response;
+        //private ICommand getResponseCommand;        
 
         #endregion
 
         #region Public Properties/Commands
-
+            /*
         public ResponseModel CurrentProduct
         {
             get { return response; }            
         }
-        
-
+        */
+        /*
         public ICommand GetResponseCommand
         {
             get
@@ -38,7 +38,7 @@ namespace Hex.ViewModel
                 }
                 return getResponseCommand;
             }
-        }
+        }*/
        
         #endregion
 
@@ -53,8 +53,7 @@ namespace Hex.ViewModel
             //p.ProductName = "Test Product";
             //p.UnitPrice = 10.00;
             //CurrentProduct = p;
-        }
-]        
+        }        
 
         #endregion
     }
