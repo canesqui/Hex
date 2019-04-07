@@ -8,7 +8,7 @@ public class ColorChange : MonoBehaviour {
 	public SpriteRenderer rend;  // what are we rendering? the hex
 
 	public enum Player {ONE, TWO};
-	public Player currentPlayer = Player.ONE;
+	public static Player currentPlayer = Player.ONE;
 
 	//private int index = 1; //initialize at 1, otherwise you have to press the ball twice to change color
 

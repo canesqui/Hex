@@ -139,7 +139,6 @@ MonoBehaviour:
   - {r: 0.9803922, g: 0.78823537, b: 0.3529412, a: 1}
   - {r: 0.3529412, g: 0.67058825, b: 0.98823535, a: 1}
   rend: {fileID: 212130416974641976}
-  currentPlayer: 0
 --- !u!212 &212130416974641976
 SpriteRenderer:
   m_ObjectHideFlags: 1
