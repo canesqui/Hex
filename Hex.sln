@@ -5,11 +5,16 @@ VisualStudioVersion = 15.0.28010.2046
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hex Client", "Hex\Hex Client.csproj", "{66001129-FE84-4122-94B1-1CB1B1C224DE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "API", "API\API.csproj", "{17E1B153-8E23-40EB-86A0-9AFACFDA49A5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "API", "API\API.csproj", "{17E1B153-8E23-40EB-86A0-9AFACFDA49A5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{A04A78F1-D19F-4CDD-B5D9-19AF1742DDDC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "Server\Server.csproj", "{A04A78F1-D19F-4CDD-B5D9-19AF1742DDDC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{21100AA4-D491-460B-B6AC-C4611CDFC4AC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "Common\Common.csproj", "{21100AA4-D491-460B-B6AC-C4611CDFC4AC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C0949435-EDEB-4EE1-B3E5-34527A066049}"
+	ProjectSection(SolutionItems) = preProject
+		AI.cs = AI.cs
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
