@@ -54,7 +54,7 @@ namespace Hex.ViewModel
             //p.UnitPrice = 10.00;
             //CurrentProduct = p;
         }
-]        
+        
 
         #endregion
     }

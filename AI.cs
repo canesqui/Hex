@@ -7,7 +7,7 @@ public class Class1
 
         void Dijkstra()
         {
-
+            
         }
 
         void Heuristic()
