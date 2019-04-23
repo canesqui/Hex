@@ -12,9 +12,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "Common\Common.csproj", "{21100AA4-D491-460B-B6AC-C4611CDFC4AC}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C0949435-EDEB-4EE1-B3E5-34527A066049}"
-	ProjectSection(SolutionItems) = preProject
-		AI.cs = AI.cs
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AI", "AI\AI.csproj", "{802A1428-4A82-40C6-87F6-C920626D0C63}"
 EndProject
