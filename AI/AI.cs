@@ -11,7 +11,7 @@ namespace AI
 {
     public class AI
     {
-        // USE DEFINES OR VARIABLES FOR -12 +1 -11 etc=====================================================
+        // USE DEFINES OR VARIABLES FOR -12 +1 -11 etc=====================================================NAH
         private static readonly int red = 2;
         private static readonly int blue = 1;
         private static readonly int empty = 0;
