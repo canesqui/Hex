@@ -19,7 +19,7 @@ namespace AI
         private static readonly int v = 11;
         private static readonly int NO_PARENT = -1;
         private static readonly int connected = 1;
-        private static readonly int not_connected = 0;
+        private static readonly int not_connected = 1000;  // changed from 0
         private static readonly int[,] translation = new int[,]
            {{0, 11, 22, 33, 44, 55, 66, 77, 88,  99, 110},
             {1, 12, 23, 34, 45, 56, 67, 78, 89, 100, 111},
@@ -84,7 +84,7 @@ namespace AI
         private List<int> blue_tiles = new List<int>();
         private int[,] board = new int[v,v];
         private int[,] red_graph = new int[V, V];
-        private int[,] blue_graph = new int[V, V];   // blue is always AI
+        private int[,] blue_graph = new int[V, V];   
         //static List<int> path = new List<int>();
         private static readonly int _i = 0;
         private static readonly int _j = 1;
@@ -94,18 +94,18 @@ namespace AI
         // MEANING I NEED TO HAVE A LIST OF NODES THAT MAKE UP THE SHORTEST PATH
         // I THEN PICK EITHER THE FIRST ONE OR THE ONE THAT IS A NEIGHBOR
 
-        public void Initialize(int player, int seed)
+        public int[] Initialize(int player, int seed = 0)   // default for seed == 0; sets the seed to be System.Time
         {
-            //Transpose();
-            red_graph = MakeGraph();    // unused
+            red_graph = MakeGraph();
             blue_graph = MakeGraph();
-            //GetBorderTiles(board, blue);
-            //GetBorderTiles(board, red); // unused
-            FirstMove(player, seed);
+            int[] mv = new int[2]; // 2 is number of indices in the return value
+            mv = FirstMove(player, seed);
             int[] tile = GetPlayerTiles(player);
             SetBorder(tile[0], player);
+            return mv;
         }
-        public void UpdateBoard(int i, int j, int player)
+
+        public void UpdateBoard(int i, int j, int player)   // this sets the player given, to the indices given
         {
             if(player == red)
             {
@@ -121,11 +121,16 @@ namespace AI
             }
             
         }
-        void FirstMove(int player, int seed)
+        int[] FirstMove(int player, int seed)
         {
+            if(seed == 0)
+            {
+                seed = (int)DateTime.Now.Ticks;
+            }
             Random rand = new Random(seed);
             int i = 0;
             int j = 0;
+            int[] mv = new int[2];  // 2 is the number of indices in the return value
             if (player == red)
             {
                 i = indices[red_border[rand.Next(red_border.Count())], _i];
@@ -138,14 +143,34 @@ namespace AI
                 j = indices[blue_border[rand.Next(blue_border.Count())], _j];
                 blue_tiles.Add(translation[i, j]);
             }
-
-            UpdateBoard(i, j, player);   
+            mv[_i] = i;
+            mv[_j] = j;
+            UpdateBoard(i, j, player);
+            return mv;
         }
-        void SetBorder(int tile, int player)
+        public bool TestGoal()
+        {
+            foreach (var tile in red_tiles)
+            {
+                if (red_borders.Contains(tile)) // if the first tile is in the top, set the goal border set to the bottom etc
+                {
+                    return true;
+                }
+            }
+            foreach (var tile in blue_tiles)
+            {
+                if (blue_borders.Contains(tile))
+                {
+                    return true;
+                }
+            }
+            return false;   // if neither has a tile in the goal return false
+        }
+        void SetBorder(int tile, int player)    // This sets which side the AI is trying to get to
         {
             if(player == red)
             {
-                if (red_top_borders.Contains(tile))
+                if (red_top_borders.Contains(tile)) // if the first tile is in the top, set the goal border set to the bottom etc
                 {
                     red_borders = red_bot_borders;
                 }
@@ -183,28 +208,22 @@ namespace AI
             int out_source = int.MaxValue;
             List<int> out_dist = new List<int>();
             int[,] _graph = new int[V, V];
+            List<int> tiles = new List<int>();
+
             if (player == red)
             {
                 RemoveOpponentGraph(ref red_graph, player, opposing_player); // this edits out the opposing tiles so there are no connections between red and blue
                 _graph = red_graph;
+                tiles = red_tiles;
             }
             else if (player == blue)
             {
                 RemoveOpponentGraph(ref blue_graph, player, opposing_player); // this edits out the opposing tiles so there are no connections between red and blue
                 _graph = blue_graph;
-            }
-            object sync = new Object();
-            // I need to make children for Dijkstra in parallel
-            List<int> tiles = new List<int>();
-            if(player == red)
-            {
-                tiles = red_tiles;
-            }
-            else if(player == blue)
-            {
                 tiles = blue_tiles;
             }
-
+            //object sync = new Object();
+            
             for(int i = 0; i < tiles.Count; i++)
             {
                 int source = tiles[i];
@@ -212,7 +231,7 @@ namespace AI
                 List<int> dist = DijkstraS(_graph, source, ref parents);
                 if(player == red)
                 {
-                    dist = RemoveNonBorderDists(dist, red);
+                    dist = RemoveNonBorderDists(dist, red); 
                 }
                 else if(player == blue)
                 {
@@ -263,10 +282,20 @@ namespace AI
 
             smallest = path[path.Count - 2];  // gets the next tile in the chain after the initial tile// path[last] == start
             int[] move = new int[] { indices[smallest, _i], indices[smallest, _j] };
-            board[indices[smallest, _i], indices[smallest, _j]] = blue;
-            red_tiles.Add(smallest);    // MAKE SURE THIS IS THE RIGHT INDEX======================================
+            
+            if(player == red)
+            {
+                board[indices[smallest, _i], indices[smallest, _j]] = red;
+                red_tiles.Add(smallest);    // MAKE SURE THIS IS THE RIGHT INDEX======================================
+            }
+            else if(player == blue)
+            {
+                board[indices[smallest, _i], indices[smallest, _j]] = blue;
+                blue_tiles.Add(smallest);
+            }
+            
             PrintBoard();   // Print out the board
-            PrintGraph(player);
+            PrintGraph(player); // Print graph to file
             //UpdateGraph(translation[indices[smallest, _i], indices[smallest, _j]], player);   // This may be unneeded
             return move;
         }
@@ -277,6 +306,18 @@ namespace AI
             {
                 for(i = 0; i < v; i++)
                 {
+                    if(board[i,j] == red)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                    }
+                    else if(board[i,j] == blue)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Blue;
+                    }
+                    else if(board[i,j] == empty)
+                    {
+                        Console.ForegroundColor = ConsoleColor.White;
+                    }
                     Console.Write(board[i, j] + "   ");
                 }
                 switch (j)
@@ -394,27 +435,26 @@ namespace AI
             //});
             return ret_dist;
         }
-        // This may be unneeded
-        void GetBorderTiles(int[,] board, int player) // 0 = red, 1 = blue, 2 = empty
-        {
-            for (int i = 0; i < v; i++)
-            {
-                for (int j = 0;  j < v;  j++)
-                {
-                    if(board[i,j] == player)
-                    {
-                        if(player == red)
-                        {
-                            red_borders.Add(translation[i, j]);
-                        }
-                        else if(player == blue)
-                        {
-                            blue_borders.Add(translation[i, j]);
-                        }
-                    }
-                }
-            }
-        }
+        //void GetBorderTiles(int[,] board, int player) // 0 = red, 1 = blue, 2 = empty
+        //{
+        //    for (int i = 0; i < v; i++)
+        //    {
+        //        for (int j = 0;  j < v;  j++)
+        //        {
+        //            if(board[i,j] == player)
+        //            {
+        //                if(player == red)
+        //                {
+        //                    red_borders.Add(translation[i, j]);
+        //                }
+        //                else if(player == blue)
+        //                {
+        //                    blue_borders.Add(translation[i, j]);
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
         int[] GetPlayerTiles(int player)    // This may be unneeded
         {
             List<int> tiles = new List<int>();
@@ -443,7 +483,7 @@ namespace AI
                         {
                             if (z == 0)
                             {
-                                graph[z + 11, z] = not_connected;
+                                graph[z + 11, z] = not_connected; //== 0
                                 graph[z + 12, z] = not_connected;
                                 graph[z + 1, z] = not_connected;
 
@@ -678,132 +718,132 @@ namespace AI
             }
             return graph;
         }
-        void UpdateGraph(int player, int tile)
-        {
-            int[,] graph = new int[V,V];
-            if (player == red)
-            {
-                graph = red_graph;
-            }
-            else if(player == blue)
-            {
-                graph = blue_graph;
-            }
-            int i = tile;
-                if (i < 11)  // bottom
-                {
-                    if (i == 0)
-                    {
-                        graph[i + 11, i] = connected;
-                        graph[i + 12, i] = connected;
-                        graph[i + 1, i] = connected;
+        //void UpdateGraph(int player, int tile)
+        //{
+        //    int[,] graph = new int[V,V];
+        //    if (player == red)
+        //    {
+        //        graph = red_graph;
+        //    }
+        //    else if(player == blue)
+        //    {
+        //        graph = blue_graph;
+        //    }
+        //    int i = tile;
+        //    if (i < 11)  // bottom
+        //    {
+        //        if (i == 0)
+        //        {
+        //            graph[i + 11, i] = connected;
+        //            graph[i + 12, i] = connected;
+        //            graph[i + 1, i] = connected;
 
-                        graph[i, i + 11] = connected;
-                        graph[i, i + 12] = connected;
-                        graph[i, i + 1] = connected;
-                    }
-                    else if (i == 10)
-                    {
-                        graph[i - 1, i] = connected;
-                        graph[i + 11, i] = connected;
+        //            graph[i, i + 11] = connected;
+        //            graph[i, i + 12] = connected;
+        //            graph[i, i + 1] = connected;
+        //        }
+        //        else if (i == 10)
+        //        {
+        //            graph[i - 1, i] = connected;
+        //            graph[i + 11, i] = connected;
 
-                        graph[i, i - 1] = connected;
-                        graph[i, i + 11] = connected;
-                    }
-                    else
-                    {
-                        graph[i - 1, i] = connected;
-                        graph[i + 11, i] = connected;
-                        graph[i + 12, i] = connected;
-                        graph[i + 1, i] = connected;
+        //            graph[i, i - 1] = connected;
+        //            graph[i, i + 11] = connected;
+        //        }
+        //        else
+        //        {
+        //            graph[i - 1, i] = connected;
+        //            graph[i + 11, i] = connected;
+        //            graph[i + 12, i] = connected;
+        //            graph[i + 1, i] = connected;
 
-                        graph[i, i - 1] = connected;
-                        graph[i, i + 11] = connected;
-                        graph[i, i + 12] = connected;
-                        graph[i, i + 1] = connected;
-                    }
-                }
-                else if (i % 11 == 0) // left
-                {
-                    if (i == 110)
-                    {
-                        //graph[i - 12, i] = connected;
-                        graph[i + 1, i] = connected;
-                        graph[i - 11, i] = connected;
-                        //graph[i + 12, i] = connected;
+        //            graph[i, i - 1] = connected;
+        //            graph[i, i + 11] = connected;
+        //            graph[i, i + 12] = connected;
+        //            graph[i, i + 1] = connected;
+        //        }
+        //    }
+        //    else if (i % 11 == 0) // left
+        //    {
+        //        if (i == 110)
+        //        {
+        //            //graph[i - 12, i] = connected;
+        //            graph[i + 1, i] = connected;
+        //            graph[i - 11, i] = connected;
+        //            //graph[i + 12, i] = connected;
 
-                        //graph[i, i - 12] = connected;
-                        graph[i, i + 1] = connected;
-                        graph[i, i - 11] = connected;
-                        // graph[i, i + 12] = connected;
-                    }
-                    else
-                    {
-                        graph[i + 11, i] = connected;
-                        graph[i + 12, i] = connected;
-                        graph[i + 1, i] = connected;
-                        graph[i - 11, i] = connected;
+        //            //graph[i, i - 12] = connected;
+        //            graph[i, i + 1] = connected;
+        //            graph[i, i - 11] = connected;
+        //            // graph[i, i + 12] = connected;
+        //        }
+        //        else
+        //        {
+        //            graph[i + 11, i] = connected;
+        //            graph[i + 12, i] = connected;
+        //            graph[i + 1, i] = connected;
+        //            graph[i - 11, i] = connected;
 
-                        graph[i, i + 11] = connected;
-                        graph[i, i + 12] = connected;
-                        graph[i, i + 1] = connected;
-                        graph[i, i - 11] = connected;
-                    }
-                }
-                else if (i == 21 | i == 32 | i == 43 | i == 54 | i == 65 | i == 76 | i == 87 | i == 98 | i == 109 | i == 120)    // right
-                {
-                    if (i == 120)
-                    {
-                        graph[i - 12, i] = connected;
-                        graph[i - 1, i] = connected;
-                        graph[i - 11, i] = connected;
+        //            graph[i, i + 11] = connected;
+        //            graph[i, i + 12] = connected;
+        //            graph[i, i + 1] = connected;
+        //            graph[i, i - 11] = connected;
+        //        }
+        //    }
+        //    else if (i == 21 | i == 32 | i == 43 | i == 54 | i == 65 | i == 76 | i == 87 | i == 98 | i == 109 | i == 120)    // right
+        //    {
+        //        if (i == 120)
+        //        {
+        //            graph[i - 12, i] = connected;
+        //            graph[i - 1, i] = connected;
+        //            graph[i - 11, i] = connected;
 
-                        graph[i, i - 12] = connected;
-                        graph[i, i - 1] = connected;
-                        graph[i, i - 11] = connected;
-                    }
-                    else
-                    {
-                        graph[i - 12, i] = connected;
-                        graph[i - 1, i] = connected;
-                        graph[i + 11, i] = connected;
-                        graph[i - 11, i] = connected;
+        //            graph[i, i - 12] = connected;
+        //            graph[i, i - 1] = connected;
+        //            graph[i, i - 11] = connected;
+        //        }
+        //        else
+        //        {
+        //            graph[i - 12, i] = connected;
+        //            graph[i - 1, i] = connected;
+        //            graph[i + 11, i] = connected;
+        //            graph[i - 11, i] = connected;
 
-                        graph[i, i - 12] = connected;
-                        graph[i, i - 1] = connected;
-                        graph[i, i + 11] = connected;
-                        graph[i, i - 11] = connected;
-                    }
-                }
-                else if (i > 109)    // top  // doesn't include 120 or 110
-                {
-                    graph[i - 12, i] = connected;
-                    graph[i - 1, i] = connected;
-                    graph[i + 1, i] = connected;
-                    graph[i - 11, i] = connected;
+        //            graph[i, i - 12] = connected;
+        //            graph[i, i - 1] = connected;
+        //            graph[i, i + 11] = connected;
+        //            graph[i, i - 11] = connected;
+        //        }
+        //    }
+        //    else if (i > 109)    // top  // doesn't include 120 or 110
+        //    {
+        //        graph[i - 12, i] = connected;
+        //        graph[i - 1, i] = connected;
+        //        graph[i + 1, i] = connected;
+        //        graph[i - 11, i] = connected;
 
-                    graph[i, i - 12] = connected;
-                    graph[i, i - 1] = connected;
-                    graph[i, i + 1] = connected;
-                    graph[i, i - 11] = connected;
-                }
-                else    // middle
-                {
-                    graph[i - 12, i] = connected;
-                    graph[i - 1, i] = connected;
-                    graph[i + 11, i] = connected;
-                    graph[i + 12, i] = connected;
-                    graph[i + 1, i] = connected;
-                    graph[i - 11, i] = connected;
+        //        graph[i, i - 12] = connected;
+        //        graph[i, i - 1] = connected;
+        //        graph[i, i + 1] = connected;
+        //        graph[i, i - 11] = connected;
+        //    }
+        //    else    // middle
+        //    {
+        //        graph[i - 12, i] = connected;
+        //        graph[i - 1, i] = connected;
+        //        graph[i + 11, i] = connected;
+        //        graph[i + 12, i] = connected;
+        //        graph[i + 1, i] = connected;
+        //        graph[i - 11, i] = connected;
 
-                    graph[i, i - 12] = connected;
-                    graph[i, i - 1] = connected;
-                    graph[i, i + 11] = connected;
-                    graph[i, i + 12] = connected;
-                    graph[i, i + 1] = connected;
-                    graph[i, i - 11] = connected;
-                }
-        }
+        //        graph[i, i - 12] = connected;
+        //        graph[i, i - 1] = connected;
+        //        graph[i, i + 11] = connected;
+        //        graph[i, i + 12] = connected;
+        //        graph[i, i + 1] = connected;
+        //        graph[i, i - 11] = connected;
+        //    }
+        //}
         // This function stores transpose of A[][] in B[][] 
         //static void Transpose()
         //{
@@ -846,7 +886,7 @@ namespace AI
         }
         private static List<int> DijkstraS(int[,] graph, int startVertex, ref int[] parents)
         {
-            int nVertices = graph.GetLength(0);
+            int nVertices = V; // graph.GetLength(0);     // Change this to V=========================================================!!!!????
 
             // shortestDistances[i] will hold the shortest distance from src to i  
             List<int> dist = new List<int>(new int[nVertices]);
@@ -880,13 +920,26 @@ namespace AI
                     {
                         nearestVertex = vertexIndex1;
                         shortestDistance = dist[vertexIndex1];
+
                     }
-                    //Console.WriteLine(vertexIndex);
+                    //else if (!added[vertexIndex1])
+                    //{
+                    //    Console.WriteLine(vertexIndex1 + " !added[vertexIndex1]");
+                    //}
+                    //else if (dist[vertexIndex1] < shortestDistance)
+                    //{
+                    //    //nearestVertex = -1;
+                    //    Console.WriteLine(vertexIndex1 + " dist[vertexIndex1] < shortestDistance");
+                    //}
+                    //else
+                    //{
+                    //    Console.WriteLine(vertexIndex1 + " added[vertexIndex1] && dist[vertexIndex1] >= shortestDistance");
+                    //}
                 }
                 // Mark the picked vertex as processed  
                 added[nearestVertex] = true;
 
-                // Update dist value of the adjacent vertices of the picked vertex.
+                // Update distance value of the adjacent vertices of the picked vertex.
                 int vertexIndex2 = 0;
                 for (vertexIndex2 = 0; vertexIndex2 < nVertices; vertexIndex2++)
                 {
