@@ -19,7 +19,7 @@ namespace AI
         private static readonly int v = 11;
         private static readonly int NO_PARENT = -1;
         private static readonly int connected = 1;
-        private static readonly int not_connected = 1000;  // changed from 0
+        private static readonly int not_connected = 10000;  // changed from 0
         private static readonly int[,] translation = new int[,]
            {{0, 11, 22, 33, 44, 55, 66, 77, 88,  99, 110},
             {1, 12, 23, 34, 45, 56, 67, 78, 89, 100, 111},
@@ -107,7 +107,7 @@ namespace AI
 
         public void UpdateBoard(int i, int j, int player)   // this sets the player given, to the indices given
         {
-            if(player == red)
+            if (player == red)
             {
                 board[i, j] = red;
             }
@@ -222,58 +222,35 @@ namespace AI
                 _graph = blue_graph;
                 tiles = blue_tiles;
             }
-            //object sync = new Object();
+            object sync = new Object();
             
-            for(int i = 0; i < tiles.Count; i++)
+
+
+            Parallel.For(0, tiles.Count, i =>
             {
                 int source = tiles[i];
                 int[] parents = new int[V];
                 List<int> dist = DijkstraS(_graph, source, ref parents);
-                if(player == red)
+                if (player == red)
                 {
-                    dist = RemoveNonBorderDists(dist, red); 
+                    dist = RemoveNonBorderDists(dist, red);
                 }
-                else if(player == blue)
+                else if (player == blue)
                 {
                     dist = RemoveNonBorderDists(dist, blue);
                 }
-                
-                dist[Array.IndexOf(dist.ToArray(), dist.Min())] = int.MaxValue; // this makes sure that 0 isn't picked as the smallest
-                if (dist.Min() < smallest)
+                lock (sync)
                 {
-                    smallest = Array.IndexOf(dist.ToArray(), dist.Min());//dist.Min();
-                    out_source = source;
-                    out_dist = dist;
-                    out_parents = parents;
+                    dist[Array.IndexOf(dist.ToArray(), dist.Min())] = int.MaxValue; // this makes sure that 0 isn't picked as the smallest
+                    if (dist.Min() < smallest)
+                    {
+                        smallest = Array.IndexOf(dist.ToArray(), dist.Min());//dist.Min();
+                        out_source = source;
+                        out_dist = dist;
+                        out_parents = parents;
+                    }
                 }
-            } // Serial.For  
-
-            //Parallel.For(0, tiles.Length, i =>
-            //{
-            //int source = tiles[i];
-            //int[] parents = new int[V];
-            //List<int> dist = DijkstraS(blue_graph, source, ref parents);
-
-            //if (player == red)
-            //{
-            //    dist = RemoveExtraDists(dist, red);
-            //}
-            //else if (player == blue)
-            //{
-            //    dist = RemoveExtraDists(dist, blue);
-            //}
-            //dist[Array.IndexOf(dist.ToArray(), dist.Min())] = int.MaxValue; // this makes sure that 0 isn't picked as the smallest
-            //if (dist.Min() < smallest)
-            //{
-            //lock (sync)
-            //{
-            //    smallest = Array.IndexOf(dist.ToArray(), dist.Min());//dist.Min();
-            //    out_source = source;
-            //    out_dist = dist;
-            //    out_parents = parents;
-            //}
-            //}
-            //}); // Parallel.For  
+            }); // Parallel.For  
 
             // change the board by adding a player tile that gives the shortest distance
 
@@ -955,5 +932,29 @@ namespace AI
             //PrintSolution(startVertex, shortestDistances, parents);
             return dist;
         }
+
+        //for(int i = 0; i < tiles.Count; i++)
+        //{
+        //    int source = tiles[i];
+        //    int[] parents = new int[V];
+        //    List<int> dist = DijkstraS(_graph, source, ref parents);
+        //    if(player == red)
+        //    {
+        //        dist = RemoveNonBorderDists(dist, red); 
+        //    }
+        //    else if(player == blue)
+        //    {
+        //        dist = RemoveNonBorderDists(dist, blue);
+        //    }
+
+        //    dist[Array.IndexOf(dist.ToArray(), dist.Min())] = int.MaxValue; // this makes sure that 0 isn't picked as the smallest
+        //    if (dist.Min() < smallest)
+        //    {
+        //        smallest = Array.IndexOf(dist.ToArray(), dist.Min());//dist.Min();
+        //        out_source = source;
+        //        out_dist = dist;
+        //        out_parents = parents;
+        //    }
+        //} // Serial.For  
     }
 }
