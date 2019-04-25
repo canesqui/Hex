@@ -26,12 +26,12 @@ namespace Server
         {
             this.gameType = gameType;
 
-            if(gameType == GameType.PlayerVsAI)
+            if (gameType == GameType.PlayerVsAI)
             {
                 player1 = new Human();
                 player2 = new AI();
             }
-            else if(gameType == GameType.PlayerVsPlayer)
+            else if (gameType == GameType.PlayerVsPlayer)
             {
                 player1 = new Human();
                 player2 = new Human();
@@ -43,12 +43,8 @@ namespace Server
             }
 
             gameLogic = new GameLogicPlaceholder();
-            UpdateBoard();
-        }
-
-        public void UpdateBoard()
-        {
-            //Send board state
+            gameLogic.gameBoard = new BoardState();
+            gameLogic.gameBoard.InitializeBoard();
         }
 
         public Common.MoveResult Move(Common.Move move)
@@ -57,10 +53,12 @@ namespace Server
             response.PlayerMoveResult = gameLogic.Move(move);
             if (response.PlayerMoveResult == Common.MoveResponse.Sucess)
             {
+                gameLogic.gameBoard.UpdateBoard(move, gameLogic.IsPlayer1sTurn()); //Update the board through the logic
+                gameLogic.SwitchTurns(); //Moved this to this file so that it could all be done in one place
                 response.OpponentMove = ((AI)player2).MakeMove(gameLogic);
             }
 
-            if(gameLogic.IsGameOver())
+            if (gameLogic.GameWon())
             {
                 response.PlayerMoveResult = Common.MoveResponse.GameOver;
                 return response;
@@ -69,19 +67,13 @@ namespace Server
             return response;
         }
 
-        public void NewBoardState(GameLogicPlaceholder gameLogic)
-        {
-            this.gameLogic = gameLogic;
-            UpdateBoard();
-        }
-
         public GameResult GameStatus()
         {
-            if(gameLogic.Winner == 1)
+            if(gameLogic.winner == 1)
             {
                 return GameResult.Win;
             }
-            else if(gameLogic.Winner == 2)
+            else if(gameLogic.winner == 2)
             {
                 return GameResult.Lose;
             }
@@ -100,4 +92,4 @@ namespace Server
             }
         }
     }
-}
+} 
