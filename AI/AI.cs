@@ -104,7 +104,90 @@ namespace AI
             SetBorder(tile[0], player);
             return mv;
         }
+        public int[] Move(int player, int opposing_player)  // red = 2, blue = 1, empty = 0
+        {
+            if (player == red)
+            {
+                //Console.Write("Red ");
+            }
+            else if (player == blue)
+            {
+                //Console.Write("Blue ");
+            }
 
+            List<int> path = new List<int>();
+            int[] out_parents = new int[V]; // graph.getlength(0)
+            int smallest = int.MaxValue;   // what should I initialize this to?
+            int out_source = int.MaxValue;
+            List<int> out_dist = new List<int>();
+            int[,] _graph = new int[V, V];
+            List<int> tiles = new List<int>();
+
+            if (player == red)
+            {
+                RemoveOpponentGraph(ref red_graph, player, opposing_player); // this edits out the opposing tiles so there are no connections between red and blue
+                _graph = red_graph;
+                tiles = red_tiles;
+            }
+            else if (player == blue)
+            {
+                RemoveOpponentGraph(ref blue_graph, player, opposing_player); // this edits out the opposing tiles so there are no connections between red and blue
+                _graph = blue_graph;
+                tiles = blue_tiles;
+            }
+            object sync = new Object();
+
+
+
+            Parallel.For(0, tiles.Count, i =>
+            {
+                int source = tiles[i];
+                int[] parents = new int[V];
+                List<int> dist = DijkstraS(_graph, source, ref parents);
+                if (player == red)
+                {
+                    dist = RemoveNonBorderDists(dist, red);
+                }
+                else if (player == blue)
+                {
+                    dist = RemoveNonBorderDists(dist, blue);
+                }
+                lock (sync)
+                {
+                    dist[Array.IndexOf(dist.ToArray(), dist.Min())] = int.MaxValue; // this makes sure that 0 isn't picked as the smallest
+                    if (dist.Min() < smallest)
+                    {
+                        smallest = Array.IndexOf(dist.ToArray(), dist.Min());//dist.Min();
+                        out_source = source;
+                        out_dist = dist;
+                        out_parents = parents;
+                    }
+                }
+            }); // Parallel.For  
+
+            // change the board by adding a player tile that gives the shortest distance
+
+            PrintPath(out_source, out_dist, out_parents, ref path, smallest);
+            //Console.Write("\n");
+
+            smallest = path[path.Count - 2];  // gets the next tile in the chain after the initial tile// path[last] == start
+            int[] move = new int[] { indices[smallest, _i], indices[smallest, _j] };
+
+            if (player == red)
+            {
+                board[indices[smallest, _i], indices[smallest, _j]] = red;
+                red_tiles.Add(smallest);    // MAKE SURE THIS IS THE RIGHT INDEX======================================
+            }
+            else if (player == blue)
+            {
+                board[indices[smallest, _i], indices[smallest, _j]] = blue;
+                blue_tiles.Add(smallest);
+            }
+
+            //PrintBoard();   // Print out the board
+            //PrintGraph(player); // Print graph to file
+            return move;
+        }
         public void UpdateBoard(int i, int j, int player)   // this sets the player given, to the indices given
         {
             if (player == red)
@@ -191,92 +274,7 @@ namespace AI
                 }
             }
         }
-        public int[] Move(int player, int opposing_player)  // red = 2, blue = 1, empty = 0
-        {
-            if (player == red)
-            {
-                Console.Write("Red ");
-            }
-            else if (player == blue)
-            {
-                Console.Write("Blue ");
-            }
-
-            List<int> path = new List<int>();
-            int[] out_parents = new int[V]; // graph.getlength(0)
-            int smallest = int.MaxValue;   // what should I initialize this to?
-            int out_source = int.MaxValue;
-            List<int> out_dist = new List<int>();
-            int[,] _graph = new int[V, V];
-            List<int> tiles = new List<int>();
-
-            if (player == red)
-            {
-                RemoveOpponentGraph(ref red_graph, player, opposing_player); // this edits out the opposing tiles so there are no connections between red and blue
-                _graph = red_graph;
-                tiles = red_tiles;
-            }
-            else if (player == blue)
-            {
-                RemoveOpponentGraph(ref blue_graph, player, opposing_player); // this edits out the opposing tiles so there are no connections between red and blue
-                _graph = blue_graph;
-                tiles = blue_tiles;
-            }
-            object sync = new Object();
-            
-
-
-            Parallel.For(0, tiles.Count, i =>
-            {
-                int source = tiles[i];
-                int[] parents = new int[V];
-                List<int> dist = DijkstraS(_graph, source, ref parents);
-                if (player == red)
-                {
-                    dist = RemoveNonBorderDists(dist, red);
-                }
-                else if (player == blue)
-                {
-                    dist = RemoveNonBorderDists(dist, blue);
-                }
-                lock (sync)
-                {
-                    dist[Array.IndexOf(dist.ToArray(), dist.Min())] = int.MaxValue; // this makes sure that 0 isn't picked as the smallest
-                    if (dist.Min() < smallest)
-                    {
-                        smallest = Array.IndexOf(dist.ToArray(), dist.Min());//dist.Min();
-                        out_source = source;
-                        out_dist = dist;
-                        out_parents = parents;
-                    }
-                }
-            }); // Parallel.For  
-
-            // change the board by adding a player tile that gives the shortest distance
-
-            PrintPath(out_source, out_dist, out_parents, ref path, smallest);
-            Console.Write("\n");
-
-            smallest = path[path.Count - 2];  // gets the next tile in the chain after the initial tile// path[last] == start
-            int[] move = new int[] { indices[smallest, _i], indices[smallest, _j] };
-            
-            if(player == red)
-            {
-                board[indices[smallest, _i], indices[smallest, _j]] = red;
-                red_tiles.Add(smallest);    // MAKE SURE THIS IS THE RIGHT INDEX======================================
-            }
-            else if(player == blue)
-            {
-                board[indices[smallest, _i], indices[smallest, _j]] = blue;
-                blue_tiles.Add(smallest);
-            }
-            
-            PrintBoard();   // Print out the board
-            PrintGraph(player); // Print graph to file
-            //UpdateGraph(translation[indices[smallest, _i], indices[smallest, _j]], player);   // This may be unneeded
-            return move;
-        }
-        public void PrintBoard()
+        private void PrintBoard()
         {
             int i = 0;
             for(int j = v - 1; j >= 0; j--)
@@ -336,7 +334,7 @@ namespace AI
             }
             Console.Write("\n");
         }
-        public void PrintGraph(int player)
+        private void PrintGraph(int player)
         {
             string file_path = @"C:\Users\Able Sankovik\Visual Studio Enterprise 2017\repos\MyProjects\ZTestFilesSelfKey\hex_graph.txt";
 
@@ -362,7 +360,7 @@ namespace AI
                 //File.AppendAllText(file_path, "Z\n");
             }
         }
-        List<int> RemoveNonBorderDists(List<int> dist, int player)  // blue = 1, red = 2, empty = 0
+        private List<int> RemoveNonBorderDists(List<int> dist, int player)  // blue = 1, red = 2, empty = 0
         {
             List<int> ret_dist = dist;
             object sync_dist = new Object();
@@ -432,7 +430,7 @@ namespace AI
         //        }
         //    }
         //}
-        int[] GetPlayerTiles(int player)    // This may be unneeded
+        private int[] GetPlayerTiles(int player)    // This may be unneeded
         {
             List<int> tiles = new List<int>();
             for(int i = 0; i < v; i++)
@@ -447,7 +445,7 @@ namespace AI
             }
             return tiles.ToArray();
         }
-        void RemoveOpponentGraph(ref int[,] graph, int player, int opposing_player)   // correct way of ref'ing an array?
+        private void RemoveOpponentGraph(ref int[,] graph, int player, int opposing_player)   // correct way of ref'ing an array?
         {
             for(int i = 0; i < v; i++)
             {
@@ -573,7 +571,7 @@ namespace AI
                 }
             }
         }
-        int[,] MakeGraph()
+        private int[,] MakeGraph()
         {
             int[,] graph = new int[V, V];
 
@@ -843,9 +841,9 @@ namespace AI
             {
                 if (vertexIndex != startVertex && vertexIndex == smallest)    // dist.Min()
                 {
-                    Console.Write("\n" + startVertex + " -> ");
-                    Console.Write(vertexIndex + "   ");
-                    Console.Write(dist[vertexIndex] + "    ");
+                    //Console.Write("\n" + startVertex + " -> ");
+                    //Console.Write(vertexIndex + "   ");
+                    //Console.Write(dist[vertexIndex] + "    ");
                     MakePath(vertexIndex, parents, ref path);
                 }
             }
@@ -858,7 +856,7 @@ namespace AI
                 return;
             }
             path.Add(currentVertex);
-            Console.Write(currentVertex + " ");
+            //Console.Write(currentVertex + " ");
             MakePath(parents[currentVertex], parents, ref path);
         }
         private static List<int> DijkstraS(int[,] graph, int startVertex, ref int[] parents)
