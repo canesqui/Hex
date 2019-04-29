@@ -12,6 +12,6 @@ namespace Hex.Model
     {
         public string Result { get; set; }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        //public event PropertyChangedEventHandler PropertyChanged;
     }
 }

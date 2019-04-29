@@ -13,21 +13,23 @@ namespace API.Controllers
     [Route("api/[controller]")]
     [ApiController]
     public class GameController : ControllerBase
-    {        
+    {
+        Server.Server server = new Server.Server();
         // GET api/game
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            Random rand = new Random();
-            var gameResult = rand.Next(1);
-            switch (gameResult)
+            var gameStatus = server.GameStatus();
+            switch (gameStatus)
             {
-                case 0:
-                    return Content(Utils.Utils.Win, Utils.Utils.ApplicationJson);
-                case 1:
-                    return Content(Utils.Utils.Lose, Utils.Utils.ApplicationJson);
+                case GameResult.Win:
+                    return Content(Utils.Utils.Win, Utils.Utils.ApplicationJson);                    
+                case GameResult.Lose:
+                    return Content(Utils.Utils.Lose, Utils.Utils.ApplicationJson);                    
+                case GameResult.InProgress:
+                    return Content(Utils.Utils.InProgress, Utils.Utils.ApplicationJson);                    
                 default:
-                    return StatusCode(501, "Unexpected error");
+                    return Content(Utils.Utils.Unexpected, Utils.Utils.ApplicationJson);
             }            
         }
 
@@ -38,7 +40,8 @@ namespace API.Controllers
         [ProducesResponseType(401)] //Authorization required (future use)
         public async Task<IActionResult> Post()
         {
-            return CreatedAtAction(Guid.NewGuid().ToString(), null);
+            server.CreateBoard(Common.GameType.PlayerVsAI);
+            return CreatedAtAction(nameof(Get), Guid.NewGuid().ToString());
         }
 
         // POST api/game
@@ -47,24 +50,23 @@ namespace API.Controllers
         //409 if it is not the player's turn. 
         //return StatusCode(403, "Illegal Move");            
         [HttpPut]
-        [ProducesResponseType(200, Type = typeof(Move))]
+        [ProducesResponseType(200, Type = typeof(MoveResult))]
         [ProducesResponseType(403)] //Illegal move
         [ProducesResponseType(409)] //Not the player's turn
         [ProducesResponseType(501)] //Unexpected error                                    
         public async Task<IActionResult> Move(Move move)
-        {
-            Random rand = new Random();
-            var responseAction = rand.Next(3);
+        {            
+            var moveResult = server.Move(move);
 
-            switch (responseAction)
+            switch (moveResult.PlayerMoveResult)
             {
-                case 0:
-                    return Content(JsonConvert.SerializeObject(new MoveResult() { OpponentMove = new Move() { x = rand.Next(10), y = rand.Next(10) }, PlayerMoveResult = MoveResponse.Sucess }), Utils.Utils.ApplicationJson);
-                case 1:
-                    return Content(JsonConvert.SerializeObject(new MoveResult() { OpponentMove = null, PlayerMoveResult = MoveResponse.GameOver }), Utils.Utils.ApplicationJson);
-                case 2:
+                case MoveResponse.Sucess:
+                    return Content(JsonConvert.SerializeObject(moveResult), Utils.Utils.ApplicationJson);
+                case MoveResponse.GameOver:
+                    return Content(JsonConvert.SerializeObject(moveResult), Utils.Utils.ApplicationJson);
+                case MoveResponse.IllegalMove:
                     return StatusCode(403, "Illegal Move");
-                case 3:
+                case MoveResponse.NotYourTurn:
                     return StatusCode(409, "Not your turn");
                 default:
                     return StatusCode(501, "Unexpected error");
