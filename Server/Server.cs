@@ -7,7 +7,7 @@ namespace Server
     {
         private Player player1;
         private Player player2;
-        private GameLogicPlaceholder gameLogic;
+        private GameLogic gameLogic;
         private GameType gameType;
 
         private void CreateAI()
@@ -42,7 +42,7 @@ namespace Server
                 player2 = new AI();
             }
 
-            gameLogic = new GameLogicPlaceholder();
+            gameLogic = new GameLogic();
             gameLogic.gameBoard = new BoardState();
             gameLogic.gameBoard.InitializeBoard();
         }
@@ -56,6 +56,7 @@ namespace Server
                 gameLogic.gameBoard.UpdateBoard(move, gameLogic.IsPlayer1sTurn()); //Update the board through the logic
                 gameLogic.SwitchTurns(); //Moved this to this file so that it could all be done in one place
                 response.OpponentMove = ((AI)player2).MakeMove(gameLogic);
+                gameLogic.SwitchTurns();
             }
 
             if (gameLogic.GameWon())
@@ -92,4 +93,4 @@ namespace Server
             }
         }
     }
-} 
+}

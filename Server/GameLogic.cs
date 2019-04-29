@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Server
 {
-    public class GameLogicPlaceholder
+    public class GameLogic
     {
         Random rng = new Random();
         bool isPlayer1sTurn = true;
@@ -15,7 +15,7 @@ namespace Server
         {
             int i = rng.Next(0, 4);
 
-            if (i == 1) //Get help with this condition
+            if (!isPlayer1sTurn) //Get help with this condition
             {
                 return Common.MoveResponse.NotYourTurn;
             }

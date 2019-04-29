@@ -6,7 +6,7 @@ namespace Server
 {
     class AI : Player
     {
-        public Common.Move MakeMove(GameLogicPlaceholder game)
+        public Common.Move MakeMove(GameLogic game)
         {
             return Think();
         }
