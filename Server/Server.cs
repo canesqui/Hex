@@ -116,14 +116,34 @@ namespace Server
 
         private int[] AIMove()
         {
+            int i = 0;
             int[] xy = ((AI)player2).Move(2, 1);
             string move = "" + xy[0] + "" + xy[1];
 
-            while(AIMoves.Contains(move))
+            while(AIMoves.Contains(move) && i < 300)
             {
+                i += 1;
                 xy = ((AI)player2).Move(2, 1);
                 move = "" + xy[0] + "" + xy[1];
             }
+
+            Random rng = new Random();
+            while(i == 100)
+            {
+                int x = rng.Next(0, 11);
+                int y = rng.Next(0, 11);
+
+                if(gameLogic.gameBoard.board[x,y] == 0)
+                {
+                    move = "" + x + "" + y;
+                    xy[0] = x;
+                    xy[1] = y;
+                    ((AI)player2).UpdateBoard(xy[0], xy[1], 2);
+                    break;
+                }
+
+            }
+
             AIMoves.Add(move);
 
             return xy;
