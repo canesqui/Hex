@@ -5,11 +5,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Server;
 
 namespace AI
 {
-    public class AI
+    public class AI : 
     {
         // USE DEFINES OR VARIABLES FOR -12 +1 -11 etc=====================================================NAH
         private static readonly int red = 2;

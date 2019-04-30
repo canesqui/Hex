@@ -1,16 +1,17 @@
 ﻿using Common;
 using System;
-
+using System.Collections.Generic;
 namespace Server
 {
     public class Server
     {
-        private Player player1;
-        private Player player2;
-        private GameLogic gameLogic;
-        private GameType gameType;
-
-        private void CreateAI()
+        private static Player player1;
+        private static Player player2;
+        private static GameLogic gameLogic;
+        private static GameType gameType;
+        private static bool isAIInitialized = false;
+        private static List<string> AIMoves = new List<string>();
+        private static void CreateAI()
         {
             if (player1 == null) { player1 = new AI(); }
             else if (player2 == null) { player2 = new AI(); }
@@ -22,16 +23,17 @@ namespace Server
             else if (player2 == null) { player2 = new Human(); }
         }
 
-        public void CreateBoard(GameType gameType)
+        public void CreateBoard(GameType GameType)
         {
-            this.gameType = gameType;
+            gameType = GameType;
 
-            if (gameType == GameType.PlayerVsAI)
+            if (GameType == GameType.PlayerVsAI)
             {
                 player1 = new Human();
                 player2 = new AI();
+                
             }
-            else if (gameType == GameType.PlayerVsPlayer)
+            else if (GameType == GameType.PlayerVsPlayer)
             {
                 player1 = new Human();
                 player2 = new Human();
@@ -50,12 +52,31 @@ namespace Server
         public Common.MoveResult Move(Common.Move move)
         {
             var response = new Common.MoveResult();
+            response.OpponentMove = new Move();
             response.PlayerMoveResult = gameLogic.Move(move);
             if (response.PlayerMoveResult == Common.MoveResponse.Sucess)
             {
-                gameLogic.gameBoard.UpdateBoard(move, gameLogic.IsPlayer1sTurn()); //Update the board through the logic
-                gameLogic.SwitchTurns(); //Moved this to this file so that it could all be done in one place
-                response.OpponentMove = ((AI)player2).MakeMove(gameLogic);
+                gameLogic.gameBoard.UpdateBoard(move, gameLogic.IsPlayer1sTurn());
+                gameLogic.SwitchTurns();
+
+                if (isAIInitialized)
+                {
+                    ((AI)player2).UpdateBoard(move.x, move.y, 1);
+                    int[] xy = AIMove();//((AI)player2).Move(2, 1);
+                    response.OpponentMove.x = xy[0];
+                    response.OpponentMove.y = xy[1];
+                    gameLogic.gameBoard.UpdateBoard(response.OpponentMove, false);
+                }
+                else
+                {
+                    ((AI)player2).UpdateBoard(move.x, move.y, 1);
+                    int[] xy = ((AI)(player2)).Initialize(2, (int)DateTime.Now.Ticks);//send time as seed
+                    response.OpponentMove.x = xy[0];
+                    response.OpponentMove.y = xy[1];
+                    gameLogic.gameBoard.UpdateBoard(response.OpponentMove, false);
+                    isAIInitialized = true;
+                }
+
                 gameLogic.SwitchTurns();
             }
 
@@ -91,6 +112,21 @@ namespace Server
             {
                 return player2;
             }
+        }
+
+        private int[] AIMove()
+        {
+            int[] xy = ((AI)player2).Move(2, 1);
+            string move = "" + xy[0] + "" + xy[1];
+
+            while(AIMoves.Contains(move))
+            {
+                xy = ((AI)player2).Move(2, 1);
+                move = "" + xy[0] + "" + xy[1];
+            }
+            AIMoves.Add(move);
+
+            return xy;
         }
     }
 }

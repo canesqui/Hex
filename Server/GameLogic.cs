@@ -6,21 +6,19 @@ namespace Server
 {
     public class GameLogic
     {
-        Random rng = new Random();
         bool isPlayer1sTurn = true;
         public int winner = 0;
         public BoardState gameBoard;
 
         public Common.MoveResponse Move(Common.Move move)
         {
-            int i = rng.Next(0, 4);
-
             if (!isPlayer1sTurn) //Get help with this condition
             {
                 return Common.MoveResponse.NotYourTurn;
             }
             else if (gameBoard.board[move.x, move.y] == 0)
             {
+                gameBoard.UpdateBoard(move, true);
                 return Common.MoveResponse.Sucess;
             }
             else if (gameBoard.board[move.x, move.y] != 0)
@@ -54,7 +52,7 @@ namespace Server
                     Array.Clear(visited, 0, 121);
                     if (gameBoard.board[i, 0] == 1)
                     {
-                        if (isPath(i, 0, visited, 1))
+                        if (isPath(i, 0, ref visited, 1))
                         {
                             pathFound = true;
                             winner = 1;
@@ -72,7 +70,7 @@ namespace Server
                     Array.Clear(visited, 0, 121);
                     if (gameBoard.board[0, i] == 2 && !visited[i, 0])
                     {
-                        if (isPath(0, i, visited, 2))
+                        if (isPath(0, i, ref visited, 2))
                         {
                             pathFound = true;
                             winner = 2;
@@ -91,9 +89,9 @@ namespace Server
             return false;
         }
 
-        public bool isPath(int i, int j, bool[,] visited, int player)
+        public bool isPath(int i, int j, ref bool[,] visited, int player)
         {
-            if (isSafe(i, j) && gameBoard.board[i, j] == player)
+            if (isSafe(i, j) && gameBoard.board[i, j] == player && visited[i, j])
             {
                 visited[i, j] = true;
 
@@ -115,22 +113,22 @@ namespace Server
                 }
 
                 //check up 
-                bool up = isPath(i++, j, visited, player);
+                bool up = isPath(i+1, j, ref visited, player);
                 if (up)
                     return true;
 
                 //check down
-                bool down = isPath(i--, j, visited, player);
+                bool down = isPath(i-1, j, ref visited, player);
                 if (down)
                     return true;
 
                 //check left
-                bool left = isPath(i, j--, visited, player);
+                bool left = isPath(i, j-1, ref visited, player);
                 if (left)
                     return true;
 
                 //check right
-                bool right = isPath(i, j++, visited, player);
+                bool right = isPath(i, j+1, ref visited, player);
                 if (right)
                     return true;
             }

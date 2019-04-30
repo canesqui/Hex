@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "Server\Server.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "Common\Common.csproj", "{21100AA4-D491-460B-B6AC-C4611CDFC4AC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HexClient", "HexClient\HexClient.csproj", "{B4DF0ADB-FAEC-4861-8E6B-9FE848866280}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HexClient", "HexClient\HexClient.csproj", "{B4DF0ADB-FAEC-4861-8E6B-9FE848866280}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
