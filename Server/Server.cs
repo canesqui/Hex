@@ -117,10 +117,11 @@ namespace Server
         private int[] AIMove()
         {
             int i = 0;
+            int timeout = 10;
             int[] xy = ((AI)player2).Move(2, 1);
             string move = "" + xy[0] + "" + xy[1];
 
-            while(AIMoves.Contains(move) && i < 300)
+            while(AIMoves.Contains(move) && i < timeout)
             {
                 i += 1;
                 xy = ((AI)player2).Move(2, 1);
@@ -128,7 +129,7 @@ namespace Server
             }
 
             Random rng = new Random();
-            while(i == 10)
+            while(i == timeout)
             {
                 int x = rng.Next(0, 11);
                 int y = rng.Next(0, 11);
