@@ -18,6 +18,7 @@ namespace Server
             }
             else if (gameBoard.board[move.x, move.y] == 0)
             {
+                
                 gameBoard.UpdateBoard(move, true);
                 return Common.MoveResponse.Sucess;
             }
@@ -91,7 +92,7 @@ namespace Server
 
         public bool isPath(int i, int j, ref bool[,] visited, int player)
         {
-            if (isSafe(i, j) && gameBoard.board[i, j] == player && visited[i, j])
+            if (isSafe(i, j) && gameBoard.board[i, j] == player && !visited[i, j])
             {
                 visited[i, j] = true;
 
