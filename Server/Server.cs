@@ -128,7 +128,7 @@ namespace Server
             }
 
             Random rng = new Random();
-            while(i == 100)
+            while(i == 10)
             {
                 int x = rng.Next(0, 11);
                 int y = rng.Next(0, 11);
